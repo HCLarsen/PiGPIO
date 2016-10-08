@@ -1,6 +1,7 @@
 #include <ruby.h>
 #include <stdio.h>
 #include <bcm2835.h>
+#include <pins.h>
 
 VALUE rb_mRubyPi;
 
@@ -10,7 +11,15 @@ VALUE initialize(VALUE self) {
   if (!bcm2835_init())
     return 1;
 
+  mapPins();
+
   printf("%s\n", "GPIO Initailized");
+
+  int i;
+  for (i=0; i<41;i++) {
+    printf("pins[%d] = %d\n", i, pins[i]);
+  }
+
   return Qtrue;
 }
 
@@ -35,8 +44,9 @@ VALUE setPin(VALUE object, VALUE pin, VALUE on) {
   return Qtrue;
 }
 
-VALUE pin(VALUE pin) {
+VALUE pin(VALUE object, VALUE pin) {
   uint8_t pinInt = FIX2INT(pin);
+  bcm2835_gpio_fsel(pinInt, BCM2835_GPIO_FSEL_INPT);
   if (bcm2835_gpio_lev(pinInt)) {
     printf("GPIO%u is high\n", pinInt);
     return Qtrue;
